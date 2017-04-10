@@ -9,15 +9,13 @@ help_message = "Hello! Below are the commands available to you: " \
 
 
 @bot.event
-@asyncio.coroutine
-def on_ready():
+async def on_ready():
     print('Logged in as {} (ID: {})'.format(bot.user.name, bot.user.id))
     print('------')
 
-@bot.command
-@asyncio.coroutine
-def help():
-    yield from bot.say(help_message)
+@bot.command()
+async def help():
+    await bot.say(help_message)
 
 
 def get_bot():
