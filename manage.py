@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import bot
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dingus_bot.settings")
@@ -19,4 +20,7 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
-    execute_from_command_line(sys.argv)
+    # TODO - Run as async task
+    bot = bot.get_bot()
+    bot.run('MzAwNTE4MzM2MDA4MTU5MjMy.C81ZKg.sj3adqS2daQMnXorqX22jJUCNgg')
+    # execute_from_command_line(sys.argv)

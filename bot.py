@@ -4,8 +4,6 @@ import asyncio
 
 description="A bot that provides useless commands and tidbits. I can be found at https://github.com/SVT125/dingus-bot."
 bot = commands.Bot(command_prefix=">", description=description)
-help_message = "Hello! Below are the commands available to you: " \
-    "TODO"
 
 
 @bot.event
@@ -14,8 +12,8 @@ async def on_ready():
     print('------')
 
 @bot.command()
-async def help():
-    await bot.say(help_message)
+async def test():
+    await bot.say("6")
 
 
 def get_bot():
