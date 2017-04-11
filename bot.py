@@ -35,8 +35,8 @@ async def file(ctx, path=""):
 
     for root, dirs, files in os.walk('data\\' + path):
         for file_name in files:
-            if (is_file_path(path) and file_name == path) or \
-                    (match_str and match_str in file_name) or \
+            if (is_file_path(path) and path == file_name.lower()) or \
+                    (match_str and match_str in file_name.lower()) or \
                     not match_str:
                 matched_files.append(os.path.join(root, file_name))
 
