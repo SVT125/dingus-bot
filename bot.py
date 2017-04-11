@@ -52,5 +52,18 @@ async def file(ctx, path=""):
             await bot.say("There are no files in this bot's data folder to send.")
 
 
+@bot.command(pass_context=True)
+async def data(ctx):
+    """
+    PM's the list of files in the data folder.
+    """
+    msg = "Hi! These are the contents of Dingus' data directory.\n" \
+          "====================================\n"
+    for root, dirs, files in os.walk('data\\'):
+        for file_name in files:
+            msg += os.path.join(root, file_name) + '\n'
+    await bot.send_message(ctx.message.author, msg)
+
+
 def get_bot():
     return bot
