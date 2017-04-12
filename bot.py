@@ -13,6 +13,13 @@ if discord.opus.is_loaded():
 else:
     print('Failed to load opus library at startup.')
 
+
+async def disconnect_channel(server):
+    matching_voice_clients = [vc for vc in bot.voice_clients if vc.server == server]
+    if matching_voice_clients:
+        await matching_voice_clients[0].disconnect()
+
+
 @bot.event
 async def on_ready():
     print('Logged in as {} (ID: {})'.format(bot.user.name, bot.user.id))
@@ -82,9 +89,7 @@ async def join(ctx, channel=""):
         discord.opus.load_opus(OPUS_LIB_NAME)
 
     # If the bot is currently connected to a channel on this server, disconnect first.
-    matching_voice_clients = [vc for vc in bot.voice_clients if vc.server == server]
-    if matching_voice_clients:
-        await matching_voice_clients[0].disconnect()
+    await disconnect_channel(server)
 
     if channel:
         found_channel = [c for c in server.channels if c.name == channel]
@@ -108,6 +113,13 @@ async def join(ctx, channel=""):
                 await bot.say('Opus library failed to load; you probably need to restart me.')
             else:
                 await bot.say('Unknown error occurred.\n{}'.format(err))
+
+
+@bot.command(pass_context=True)
+async def leave(ctx, channel=""):
+    # If the bot is currently connected to a channel on this server, disconnect first.
+    server = ctx.message.server
+    await disconnect_channel(server)
 
 
 def get_bot():
