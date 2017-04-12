@@ -116,8 +116,10 @@ async def join(ctx, channel=""):
 
 
 @bot.command(pass_context=True)
-async def leave(ctx, channel=""):
-    # If the bot is currently connected to a channel on this server, disconnect first.
+async def leave(ctx):
+    """
+    Disconnects the bot from its current voice channel.
+    """
     server = ctx.message.server
     await disconnect_channel(server)
 
