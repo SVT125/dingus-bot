@@ -2,11 +2,16 @@ from discord.ext import commands
 import os
 import random
 import discord
-import asyncio
 
-description="A bot that provides useless commands and tidbits. I can be found at https://github.com/SVT125/dingus-bot."
+OPUS_LIB_NAME = 'libopus-0.x86.dll'
+description = "A bot that provides useless commands and tidbits. I can be found at https://github.com/SVT125/dingus-bot."
 bot = commands.Bot(command_prefix=">", description=description)
 
+discord.opus.load_opus(OPUS_LIB_NAME)
+if discord.opus.is_loaded():
+    print('Opus library successfully loaded at startup.')
+else:
+    print('Failed to load opus library at startup.')
 
 @bot.event
 async def on_ready():
@@ -63,6 +68,46 @@ async def data(ctx):
         for file_name in files:
             msg += os.path.join(root, file_name) + '\n'
     await bot.send_message(ctx.message.author, msg)
+
+
+# TODO - Potentially implement leaving the channel after a period of time -> keeps open vc list in check, faster ops.
+@bot.command(pass_context=True)
+async def join(ctx, channel=""):
+    """
+    Joins the channel specified.
+    If no channel is given, joins the channel of the user who ran the command.
+    """
+    server = ctx.message.server
+    if not discord.opus.is_loaded():
+        discord.opus.load_opus(OPUS_LIB_NAME)
+
+    # If the bot is currently connected to a channel on this server, disconnect first.
+    matching_voice_clients = [vc for vc in bot.voice_clients if vc.server == server]
+    if matching_voice_clients:
+        await matching_voice_clients[0].disconnect()
+
+    if channel:
+        found_channel = [c for c in server.channels if c.name == channel]
+        try:
+            await bot.join_voice_channel(found_channel[0])
+        except Exception as err:
+            if not discord.opus.is_loaded():
+                await bot.say('Opus library failed to load; you probably need to restart me.')
+            else:
+                await bot.say('Unknown error occurred.\n{}'.format(err))
+    else:
+        if not ctx.message.author.voice.voice_channel:
+            await bot.say('User is not in a voice channel!')
+            return
+        try:
+            await bot.join_voice_channel(ctx.message.author.voice.voice_channel)
+        except Exception as err:
+            if err == discord.InvalidArgument:
+                await bot.say('Invalid voice channel given.')
+            elif not discord.opus.is_loaded():
+                await bot.say('Opus library failed to load; you probably need to restart me.')
+            else:
+                await bot.say('Unknown error occurred.\n{}'.format(err))
 
 
 def get_bot():
