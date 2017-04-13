@@ -1,4 +1,6 @@
 from discord.ext import commands
+from imgurpython import ImgurClient
+from secrets import *
 import os
 import re
 import random
@@ -7,6 +9,7 @@ import discord
 OPUS_LIB_NAME = 'libopus-0.x86.dll'
 description = "A bot that provides useless commands and tidbits. I can be found at https://github.com/SVT125/dingus-bot."
 bot = commands.Bot(command_prefix=">", description=description)
+imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
 
 discord.opus.load_opus(OPUS_LIB_NAME)
 if discord.opus.is_loaded():
@@ -16,7 +19,7 @@ else:
 
 
 def is_flag(s):
-    return re.search('--[a-zA-Z][a-zA-Z]*', s)
+    return re.search('-[a-zA-Z][a-zA-Z]*', s)
 
 
 async def disconnect_channel(server):
@@ -71,6 +74,28 @@ async def file(ctx, *, args=""):
             await bot.say("Could not find a file whose name contained the given string.")
         else:
             await bot.say("There are no matching files in this bot's data folder.")
+
+
+# TODO - Consider sorting by time, viral, top (c, v, t) and by top e.g. day, week, month, year, all (d, w, m, y, a)
+@bot.command(pass_context=True)
+async def imgur(ctx, *, args=""):
+    """
+    Search Imgur for a picture, gif, etc.
+    Supply any number of words to query by. Add -r to return a random result of what's found.
+    Otherwise, if no argument is given, returns a random result anyway.
+    """
+    # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
+    flag, query = (args.split()[0].lower(), args.split()[1].lower()) \
+        if len(args.split()) > 1 and is_flag(args.split()[0]) \
+        else ("", args.lower())
+    if flag and flag != '-r':
+        await bot.say('Invalid arguments given.')
+    elif flag == '-r' or (not flag and not query):
+        # TODO - Random.
+        pass
+    else:
+        # TODO - Return first result of query.
+        imgur_client.gallery_search(query)
 
 
 @bot.command(pass_context=True)
