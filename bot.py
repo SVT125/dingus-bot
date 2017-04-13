@@ -1,5 +1,6 @@
 from discord.ext import commands
 import os
+import re
 import random
 import discord
 
@@ -12,6 +13,10 @@ if discord.opus.is_loaded():
     print('Opus library successfully loaded at startup.')
 else:
     print('Failed to load opus library at startup.')
+
+
+def is_flag(s):
+    return re.search('--[a-zA-Z][a-zA-Z]*', s)
 
 
 async def disconnect_channel(server):
@@ -27,13 +32,17 @@ async def on_ready():
 
 
 @bot.command(pass_context=True)
-async def file(ctx, path=""):
+async def file(ctx, *, args=""):
     """
     If a path is given as an argument, sends the data file found.
     Otherwise, if the argument is just a string, returns a random file with the string contained in its name.
-    Else, sends a random file.
+    Use flag '--r' before the string to return a random file out of what's found.
     """
     matched_files = []
+    # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
+    flag, path = (args.split()[0].lower(), args.split()[1].lower()) \
+        if len(args.split()) > 1 and is_flag(args.split()[0]) \
+        else ("", args.lower())
     is_file_path = lambda p: "." in path or "\\" in path
     match_str = path
 
@@ -53,7 +62,7 @@ async def file(ctx, path=""):
                 matched_files.append(os.path.join(root, file_name))
 
     if matched_files:
-        chosen_file = random.choice(matched_files)
+        chosen_file = random.choice(matched_files) if flag.lower() == '--r' else matched_files[0]
         await bot.send_file(ctx.message.channel, chosen_file)
     else:
         if is_file_path(path):
@@ -61,7 +70,7 @@ async def file(ctx, path=""):
         elif path:
             await bot.say("Could not find a file whose name contained the given string.")
         else:
-            await bot.say("There are no files in this bot's data folder to send.")
+            await bot.say("There are no matching files in this bot's data folder.")
 
 
 @bot.command(pass_context=True)
