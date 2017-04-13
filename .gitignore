@@ -1,2 +1,5 @@
--.idea*
--.data*
+.idea*
+data*
+resources*
+__pycache__/secrets*
+secrets.py
