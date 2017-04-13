@@ -36,7 +36,7 @@ async def file(ctx, *, args=""):
     """
     If a path is given as an argument, sends the data file found.
     Otherwise, if the argument is just a string, returns a random file with the string contained in its name.
-    Use flag '--r' before the string to return a random file out of what's found.
+    Use flag '' before the string to return a random file out of what's found.
     """
     matched_files = []
     # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
@@ -62,7 +62,7 @@ async def file(ctx, *, args=""):
                 matched_files.append(os.path.join(root, file_name))
 
     if matched_files:
-        chosen_file = random.choice(matched_files) if flag.lower() == '--r' else matched_files[0]
+        chosen_file = random.choice(matched_files) if flag.lower() == '-r' else matched_files[0]
         await bot.send_file(ctx.message.channel, chosen_file)
     else:
         if is_file_path(path):
