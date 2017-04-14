@@ -76,26 +76,80 @@ async def file(ctx, *, args=""):
             await bot.say("There are no matching files in this bot's data folder.")
 
 
-# TODO - Consider sorting by time, viral, top (c, v, t) and by top e.g. day, week, month, year, all (d, w, m, y, a)
-@bot.command(pass_context=True)
-async def imgur(ctx, *, args=""):
+# TODO - Implement rate limiting per server per day.
+# TODO - Can add flags for advanced search query parameters.
+@bot.command()
+async def imgur(*, args=""):
     """
     Search Imgur for a picture, gif, etc.
-    Supply any number of words to query by. Add -r to return a random result of what's found.
-    Otherwise, if no argument is given, returns a random result anyway.
+    Supply any number of words to query by; if none are given, returns a random result.
+    Note, if only the flags are given without a query, it is parsed as though the flags are the query.
+    Flags available are:
+
+    Output:
+    -r  Return a random result out of what's given.
+
+    Sort by:
+    -c  Time
+    -v  Viral
+    -t  Top
+
+    If sorting by top, over what time period (optional if not sorting by top):
+    -d Day
+    -w Week
+    -m Month
+    -y Year
+    -a All time
     """
     # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
-    flag, query = (args.split()[0].lower(), args.split()[1].lower()) \
+    flags, query = (args.split()[0].lower(), args.split()[1].lower()) \
         if len(args.split()) > 1 and is_flag(args.split()[0]) \
         else ("", args.lower())
-    if flag and flag != '-r':
-        await bot.say('Invalid arguments given.')
-    elif flag == '-r' or (not flag and not query):
-        # TODO - Random.
-        pass
+    SORT_TYPES = {
+        'c': 'time',
+        'v': 'viral',
+        't': 'top'
+    }
+    TIME_INTERVALS = {
+        'd': 'day',
+        'w': 'week',
+        'm': 'month',
+        'y': 'year',
+        'a': 'all'
+    }
+
+    sort_flags = ''.join(SORT_TYPES)
+    window_flags = ''.join(TIME_INTERVALS)
+    if imgur_client.credits['ClientRemaining'] == 0:
+        await bot.say("I\'m sorry, I\'ve exceeded the maximum number of imgur requests I can make today.")
+        return
+    if flags and len(re.findall('[' + 'r' + sort_flags + window_flags + ']', flags)) != len(flags) - 1:
+        await bot.say('Invalid flags given.')
+        return
+    elif flags and (len(re.findall(sort_flags, flags)) > 1 or len(re.findall(window_flags, flags)) > 1):
+        await bot.say("Too many sorting or time interval flags given, only 1 of each group is allowed.")
+        return
+
+    if not query:
+        result = imgur_client.gallery_random(random.randint(0, 50))
+        if not result:
+            await bot.say('No results found.')
+            return
+        await bot.say(result[0].link)
     else:
-        # TODO - Return first result of query.
-        imgur_client.gallery_search(query)
+        sort = SORT_TYPES.get(re.search('[' + sort_flags + ']', flags).group(0), 'top') \
+            if re.search('[' + sort_flags + ']', flags) else 'top'
+        window = TIME_INTERVALS.get(re.search('[' + window_flags + ']', flags).group(0), 'all') \
+            if re.search('[' + window_flags + ']', flags) else 'all'
+        result = imgur_client.gallery_search(query, sort=sort, window=window)
+        print(len(result), sort, window)
+        if not result:
+            await bot.say('No results found.')
+            return
+        if re.search('r', flags):
+            await bot.say(random.choice(result).link)
+        else:
+            await bot.say(result[0].link)
 
 
 @bot.command(pass_context=True)
