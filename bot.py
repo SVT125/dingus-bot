@@ -8,18 +8,27 @@ import discord
 
 OPUS_LIB_NAME = 'libopus-0.x86.dll'
 description = "A bot that provides useless commands and tidbits. I can be found at https://github.com/SVT125/dingus-bot."
+magic_ball_answers = []
 bot = commands.Bot(command_prefix=">", description=description)
 imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
-
-discord.opus.load_opus(OPUS_LIB_NAME)
-if discord.opus.is_loaded():
-    print('Opus library successfully loaded at startup.')
-else:
-    print('Failed to load opus library at startup.')
 
 
 def is_flag(s):
     return re.search('-[a-zA-Z][a-zA-Z]*', s)
+
+
+def startup():
+    # Load the opus library for voice I/O.
+    discord.opus.load_opus(OPUS_LIB_NAME)
+    if discord.opus.is_loaded():
+        print('Opus library successfully loaded at startup.')
+    else:
+        print('Failed to load opus library at startup.')
+
+    # Reads in the magic 8 ball responses from 'resources\magicball.txt'.
+    f = open('resources\magicball.txt', 'r')
+    for line in f:
+        magic_ball_answers.append(line.rstrip())
 
 
 async def disconnect_channel(server):
@@ -142,7 +151,6 @@ async def imgur(*, args=""):
         window = TIME_INTERVALS.get(re.search('[' + window_flags + ']', flags).group(0), 'all') \
             if re.search('[' + window_flags + ']', flags) else 'all'
         result = imgur_client.gallery_search(query, sort=sort, window=window)
-        print(len(result), sort, window)
         if not result:
             await bot.say('No results found.')
             return
@@ -212,5 +220,21 @@ async def leave(ctx):
     await disconnect_channel(server)
 
 
+# TODO - Allow users to add their own responses.
+# TODO - If command starts with !, it can't be erased; circumvent people deleting ! insertions as well.
+# TODO - Don't use server's file, but a local file of name "<server ID>-fortune.txt", to stop constant r/w.
+@bot.command()
+async def magic8(question=""):
+    """
+    Your favorite magic 8 ball!
+    Given a question (or any string argument really), returns a random response from a file.
+    """
+    if not question:
+        await bot.say('You didn\'t ask the magic 8 ball a question!')
+    else:
+        await bot.say(random.choice(magic_ball_answers))
+
+
 def get_bot():
+    startup()
     return bot
