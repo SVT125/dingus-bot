@@ -9,7 +9,7 @@ import discord
 OPUS_LIB_NAME = 'libopus-0.x86.dll'
 description = "A bot that provides useless commands and tidbits. I can be found at https://github.com/SVT125/dingus-bot."
 magic_ball_answers = []
-bot = commands.Bot(command_prefix=">", description=description)
+bot = commands.Bot(command_prefix="~", description=description)
 imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
 
 
