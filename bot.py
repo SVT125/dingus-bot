@@ -235,6 +235,15 @@ async def magic8(question=""):
         await bot.say(random.choice(magic_ball_answers))
 
 
+@bot.command()
+async def echo(*, msg):
+    """
+    Echoes the arguments at the end of the command.
+    Useful(?) for improvising a little bot to bot conversation.
+    """
+    await bot.say(msg)
+
+
 def get_bot():
     startup()
     return bot
