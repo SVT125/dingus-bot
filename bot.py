@@ -104,11 +104,11 @@ async def imgur(*, args=""):
     -t  Top
 
     If sorting by top, over what time period (optional if not sorting by top):
-    -d Day
-    -w Week
-    -m Month
-    -y Year
-    -a All time
+    -d  Day
+    -w  Week
+    -m  Month
+    -y  Year
+    -a  All time
     """
     # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
     flags, query = (args.split()[0].lower(), args.split()[1].lower()) \
@@ -242,6 +242,11 @@ async def echo(*, msg):
     Useful(?) for improvising a little bot to bot conversation.
     """
     await bot.say(msg)
+
+@bot.command(pass_context=True)
+async def google(ctx, *, args=""):
+    # TODO
+    pass
 
 
 def get_bot():
