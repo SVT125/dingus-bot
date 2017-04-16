@@ -1,5 +1,6 @@
 from discord.ext import commands
 from imgurpython import ImgurClient
+from googleapiclient.discovery import build
 from secrets import *
 import os
 import re
@@ -11,6 +12,7 @@ description = "A bot that provides useless commands and tidbits. I can be found 
 magic_ball_answers = []
 bot = commands.Bot(command_prefix="~", description=description)
 imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
+service = build('customsearch', 'v1', developerKey=GOOGLE_KEY)
 
 
 def is_flag(s):
@@ -243,10 +245,32 @@ async def echo(*, msg):
     """
     await bot.say(msg)
 
+
+# TODO - More intrinsic exception reporting e.g. what actually sets off query limit reached?
 @bot.command(pass_context=True)
 async def google(ctx, *, args=""):
-    # TODO
-    pass
+    """
+    Do a google text or image search.
+    Use flag -i to do an image search; otherwise, it'll be a text search.
+    Use flag -r to return a random result of what's found.
+    """
+    flags, query = (args.split()[0].lower(), args.split()[1].lower()) \
+        if len(args.split()) > 1 and is_flag(args.split()[0]) \
+        else ("", args.lower())
+    is_img_search = 'image' if re.search('i', flags) else None
+    start = 1 if re.search('r', flags) else random.randint(1, 10)
+    try:
+        results = service.cse().list(q=query, cx=GOOGLE_CSE_ID, num=10,filter='1',
+                                    start=start, searchType=is_img_search, safe='off').execute()['items']
+    except Exception as e:
+        await bot.say('Oops! Something went wrong with the Google query - I might\'ve run out of my queries for today.')
+        print(e)
+        return
+    if not results:
+        await bot.say('No results were found for this query.')
+    else:
+        selected = random.choice(results) if re.search('r', flags) else results[0]
+        await bot.say('**{} ({})**\n{}'.format(selected['title'], selected['link'], selected['snippet']))
 
 
 def get_bot():
