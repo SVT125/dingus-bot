@@ -247,8 +247,8 @@ async def echo(*, msg):
 
 
 # TODO - More intrinsic exception reporting e.g. what actually sets off query limit reached?
-@bot.command(pass_context=True)
-async def google(ctx, *, args=""):
+@bot.command()
+async def google(*, args=""):
     """
     Do a google text or image search.
     Use flag -i to do an image search; otherwise, it'll be a text search.
