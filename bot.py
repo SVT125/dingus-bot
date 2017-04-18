@@ -6,8 +6,11 @@ import os
 import re
 import random
 import discord
+import requests
+import time
 
 OPUS_LIB_NAME = 'libopus-0.x86.dll'
+GFYCAT_TOKEN = None
 description = "A bot that provides useless commands and tidbits. " \
               "I can be found at https://github.com/SVT125/dingus-bot.\n" \
               "Note, all flags in commands are shorthand and must be written under 1 argument e.g. -ibu, ib, etc."
@@ -21,6 +24,39 @@ def is_flag(s):
     return re.search('-[a-zA-Z][a-zA-Z]*', s)
 
 
+# Refreshes/gets the gfycat token using client ID/secret. Returns boolean value indicating if the request succeeded.
+def refresh_gfy_token(payload=None, refresh=True):
+    global GFYCAT_TOKEN
+    # The params are either that of an actual gfycat request or one for token auth.
+    params = payload if payload else {
+        'grant_type': 'refresh' if refresh else 'client_credentials',
+        'client_id': GFYCAT_ID,
+        'client_secret': GFYCAT_SECRET
+    }
+    if refresh:
+        payload['refresh_token'] = GFYCAT_TOKEN
+    r = requests.get('https://api.gfycat.com/v1/oauth/token', params=params).json()
+    if 'errorMessage' in r:
+        return False
+    GFYCAT_TOKEN = r['access_token']
+    return True
+
+
+# A wrapper function which attempts a request to gfycat at the given URL, args, kwargs.
+# If the token has expired/was never retrieved, attempt to renew it request_count times before giving up.
+def request_gfy(url, request_count=3, *args, **kwargs):
+    HEADERS = {
+        'Authorization': GFYCAT_TOKEN
+    }
+    result = requests.get(url, headers=HEADERS, *args, **kwargs)
+    if result.status_code == 401:
+        for i in range(0, request_count):
+            if refresh_gfy_token():
+                return requests.get(url, *args, **kwargs)
+    else:
+        return result
+    return None
+
 def startup():
     # Load the opus library for voice I/O.
     discord.opus.load_opus(OPUS_LIB_NAME)
@@ -33,6 +69,13 @@ def startup():
     f = open('resources\magicball.txt', 'r')
     for line in f:
         magic_ball_answers.append(line.rstrip())
+    print('Loaded magic 8 ball answers from file.')
+
+    # Gets the gfycat access token to begin with.
+    if refresh_gfy_token(refresh=False):
+        print('Successfully authenticated gfycat on startup.')
+    else:
+        print('Unable to authenticate gfycat ID and secret. Skipping...')
 
 
 async def disconnect_channel(server):
@@ -325,6 +368,44 @@ async def format(*, args=""):
         if 'u' in flags:
             output = '__' + output + '__'
     await bot.say(output)
+
+
+@bot.command()
+async def gfy(*, args=""):
+    """
+    Searches for a gfycat gif.
+    Use flag -r to return a random gif of what's found.
+    Use flag -n to get a gif by its name e.g. DelayedArtisticGuppy.
+    """
+    flags, query = (args.split()[0].lower(), args.split()[1].lower()) \
+        if len(args.split()) > 1 and is_flag(args.split()[0]) \
+        else ("", args.lower())
+    if 'n' in flags:
+        response = request_gfy('https://api.gfycat.com/v1/gfycats/{}'.format(query))
+        if not response:
+            await bot.say('Woops! This command isn\'t working right now, please try again later!')
+            return
+        result = response.json()
+        if 'errorMessage' in result:
+            await bot.say('The given gfycat name is invalid!')
+        else:
+            await bot.say(result['gfyItem']['gifUrl'])
+    else:
+        payload = {
+            'search_text': query,
+            'count': 25
+        }
+        response = request_gfy('https://api.gfycat.com/v1/gfycats/search', params=payload)
+        result, status_code = response.json(), response.status_code
+        if not response or 'errorMessage' in result:
+            await bot.say('Woops! This command isn\'t working right now, please try again later!')
+            return
+        else:
+            if 'r' in flags:
+                result_gif = random.choice(result['gfycats'])
+            else:
+                result_gif = result['gfycats'][0]
+            await bot.say(result_gif['gifUrl'])
 
 
 def get_bot():
