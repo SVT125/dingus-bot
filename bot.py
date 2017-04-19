@@ -159,7 +159,7 @@ async def imgur(*, args=""):
     -a  All time
     """
     # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
-    flags, query = (args.split()[0].lower(), args.split()[1].lower()) \
+    flags, query = (args.split()[0].lower()[1], args.split()[1].lower()) \
         if len(args.split()) > 1 and is_flag(args.split()[0]) \
         else ("", args.lower())
     SORT_TYPES = {
@@ -180,7 +180,7 @@ async def imgur(*, args=""):
     if imgur_client.credits['ClientRemaining'] == 0:
         await bot.say("I\'m sorry, I\'ve exceeded the maximum number of imgur requests I can make today.")
         return
-    if flags and len(re.findall('[' + 'r' + sort_flags + window_flags + ']', flags)) != len(flags) - 1:
+    if flags and len(re.findall('[' + 'r' + sort_flags + window_flags + ']', flags)) != len(flags):
         await bot.say('Invalid flags given.')
         return
     elif flags and (len(re.findall(sort_flags, flags)) > 1 or len(re.findall(window_flags, flags)) > 1):
