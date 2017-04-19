@@ -57,6 +57,7 @@ def request_gfy(url, request_count=3, *args, **kwargs):
         return result
     return None
 
+
 def startup():
     # Load the opus library for voice I/O.
     discord.opus.load_opus(OPUS_LIB_NAME)
@@ -303,7 +304,7 @@ async def google(*, args=""):
         if len(args.split()) > 1 and is_flag(args.split()[0]) \
         else ("", args.lower())
     is_img_search = 'image' if re.search('i', flags) else None
-    start = 1 if re.search('r', flags) else random.randint(1, 10)
+    start = random.randint(1, 10) if re.search('r', flags) else 1
     try:
         results = service.cse().list(q=query, cx=GOOGLE_CSE_ID, num=10,filter='1',
                                     start=start, searchType=is_img_search, safe='off').execute()['items']
