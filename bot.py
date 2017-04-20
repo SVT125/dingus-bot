@@ -9,7 +9,6 @@ import random
 import discord
 import praw
 import requests
-import time
 
 OPUS_LIB_NAME = 'libopus-0.x86.dll'
 GFYCAT_TOKEN = None
@@ -98,8 +97,8 @@ async def on_ready():
     print('------')
 
 
-@bot.command(pass_context=True)
-async def file(ctx, *, args=""):
+@bot.command()
+async def file(*, args=""):
     """
     If a path is given as an argument, sends the data file found.
     Otherwise, if the argument is just a string, returns a random file with the string contained in its name.
@@ -130,7 +129,7 @@ async def file(ctx, *, args=""):
 
     if matched_files:
         chosen_file = random.choice(matched_files) if flag.lower() == '-r' else matched_files[0]
-        await bot.send_file(ctx.message.channel, chosen_file)
+        await bot.upload(chosen_file)
     else:
         if is_file_path(path):
             await bot.say("Could not find a file with the given path name.")
@@ -140,7 +139,6 @@ async def file(ctx, *, args=""):
             await bot.say("There are no matching files in this bot's data folder.")
 
 
-# TODO - Implement rate limiting per server per day.
 # TODO - Can add flags for advanced search query parameters.
 @bot.command()
 async def imgur(*, args=""):
@@ -166,7 +164,7 @@ async def imgur(*, args=""):
     -a  All time
     """
     # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
-    flags, query = (args.split()[0].lower()[1], args.split()[1].lower()) \
+    flags, query = (args.split()[0].lower()[1:], args.split()[1].lower()) \
         if len(args.split()) > 1 and is_flag(args.split()[0]) \
         else ("", args.lower())
     SORT_TYPES = {
@@ -187,7 +185,7 @@ async def imgur(*, args=""):
     if imgur_client.credits['ClientRemaining'] == 0:
         await bot.say("I\'m sorry, I\'ve exceeded the maximum number of imgur requests I can make today.")
         return
-    if flags and len(re.findall('[' + 'r' + sort_flags + window_flags + ']', flags)) != len(flags):
+    if flags and len(re.findall('[r{}]'.format(sort_flags + window_flags), flags)) != len(flags):
         await bot.say('Invalid flags given.')
         return
     elif flags and (len(re.findall(sort_flags, flags)) > 1 or len(re.findall(window_flags, flags)) > 1):
@@ -201,10 +199,10 @@ async def imgur(*, args=""):
             return
         await bot.say(result[0].link)
     else:
-        sort = SORT_TYPES.get(re.search('[' + sort_flags + ']', flags).group(0), 'top') \
-            if re.search('[' + sort_flags + ']', flags) else 'top'
-        window = TIME_INTERVALS.get(re.search('[' + window_flags + ']', flags).group(0), 'all') \
-            if re.search('[' + window_flags + ']', flags) else 'all'
+        sort = SORT_TYPES.get(re.search('[{}]'.format(sort_flags), flags).group(0), 'top') \
+            if re.search('[{}]'.format(sort_flags), flags) else 'top'
+        window = TIME_INTERVALS.get(re.search('[{}]'.format(window_flags), flags).group(0), 'all') \
+            if re.search('[{}]'.format(window_flags), flags) else 'all'
         result = imgur_client.gallery_search(query, sort=sort, window=window)
         if not result:
             await bot.say('No results found.')
@@ -215,17 +213,18 @@ async def imgur(*, args=""):
             await bot.say(result[0].link)
 
 
-@bot.command(pass_context=True)
-async def data(ctx):
+@bot.command()
+async def data():
     """
     PM's the list of files in the data folder.
     """
-    msg = "Hi! These are the contents of Dingus' data directory.\n" \
-          "====================================\n"
+    # TODO - Proper ='s padding
+    msg = "Hi! These are the contents of Dingus' data directory.\n"
+    msg += ("=" * len(msg)) + '\n'
     for root, dirs, files in os.walk('data\\'):
         for file_name in files:
             msg += os.path.join(root, file_name) + '\n'
-    await bot.send_message(ctx.message.author, msg)
+    await bot.whisper(msg)
 
 
 # TODO - Allow users to add their own responses.
@@ -418,7 +417,7 @@ async def reddit(*, args=""):
 
     # Either we're searching with a query or we're returning a submission given the parameters.
     subreddit_results = selected_subreddits.search(query, limit=25) if query else \
-        SORT_FUNCTIONS.get(re.search('[' + sort_types + ']', flags).group(0),
+        SORT_FUNCTIONS.get(re.search('[{}]'.format(sort_types), flags).group(0),
                            selected_subreddits.hot)(limit=25)
 
     try:
@@ -430,7 +429,6 @@ async def reddit(*, args=""):
         await bot.say('Invalid subreddit query provided!')
 
 
-# TODO - Potentially implement leaving the channel after a period of time -> keeps open vc list in check, faster ops.
 @bot.command(pass_context=True)
 async def join(ctx, channel=""):
     """
