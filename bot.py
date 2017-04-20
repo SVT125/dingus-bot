@@ -17,6 +17,8 @@ description = "A bot that provides useless commands and tidbits. " \
               "I can be found at https://github.com/SVT125/dingus-bot.\n" \
               "Note, all flags in commands are shorthand and must be written under 1 argument e.g. -ibu, ib, etc."
 magic_ball_answers = []
+music_players = {} # <K = server ID, V = music player>
+
 bot = commands.Bot(command_prefix="~", description=description)
 imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
 service = build('customsearch', 'v1', developerKey=GOOGLE_KEY)
@@ -226,53 +228,6 @@ async def data(ctx):
     await bot.send_message(ctx.message.author, msg)
 
 
-# TODO - Potentially implement leaving the channel after a period of time -> keeps open vc list in check, faster ops.
-@bot.command(pass_context=True)
-async def join(ctx, channel=""):
-    """
-    Joins the channel specified.
-    If no channel is given, joins the channel of the user who ran the command.
-    """
-    server = ctx.message.server
-    if not discord.opus.is_loaded():
-        discord.opus.load_opus(OPUS_LIB_NAME)
-
-    # If the bot is currently connected to a channel on this server, disconnect first.
-    await disconnect_channel(server)
-
-    if channel:
-        found_channel = [c for c in server.channels if c.name == channel]
-        try:
-            await bot.join_voice_channel(found_channel[0])
-        except Exception as err:
-            if not discord.opus.is_loaded():
-                await bot.say('Opus library failed to load; you probably need to restart me.')
-            else:
-                await bot.say('Unknown error occurred.\n{}'.format(err))
-    else:
-        if not ctx.message.author.voice.voice_channel:
-            await bot.say('User is not in a voice channel!')
-            return
-        try:
-            await bot.join_voice_channel(ctx.message.author.voice.voice_channel)
-        except Exception as err:
-            if err == discord.InvalidArgument:
-                await bot.say('Invalid voice channel given.')
-            elif not discord.opus.is_loaded():
-                await bot.say('Opus library failed to load; you probably need to restart me.')
-            else:
-                await bot.say('Unknown error occurred.\n{}'.format(err))
-
-
-@bot.command(pass_context=True)
-async def leave(ctx):
-    """
-    Disconnects the bot from its current voice channel.
-    """
-    server = ctx.message.server
-    await disconnect_channel(server)
-
-
 # TODO - Allow users to add their own responses.
 # TODO - If command starts with !, it can't be erased; circumvent people deleting ! insertions as well.
 # TODO - Don't use server's file, but a local file of name "<server ID>-fortune.txt", to stop constant r/w.
@@ -473,6 +428,141 @@ async def reddit(*, args=""):
             await bot.say(next(subreddit_results).shortlink)
     except ResponseException:
         await bot.say('Invalid subreddit query provided!')
+
+
+# TODO - Potentially implement leaving the channel after a period of time -> keeps open vc list in check, faster ops.
+@bot.command(pass_context=True)
+async def join(ctx, channel=""):
+    """
+    Joins the channel specified.
+    If no channel is given, joins the channel of the user who ran the command.
+    """
+    server = ctx.message.server
+    if not discord.opus.is_loaded():
+        discord.opus.load_opus(OPUS_LIB_NAME)
+
+    # If the bot is currently connected to a channel on this server, disconnect first.
+    await disconnect_channel(server)
+
+    if channel:
+        found_channel = [c for c in server.channels if c.name == channel]
+        try:
+            await bot.join_voice_channel(found_channel[0])
+        except Exception as err:
+            if not discord.opus.is_loaded():
+                await bot.say('Opus library failed to load; you probably need to restart me.')
+            else:
+                await bot.say('Unknown error occurred.\n{}'.format(err))
+    else:
+        if not ctx.message.author.voice.voice_channel:
+            await bot.say('User is not in a voice channel!')
+            return
+        try:
+            await bot.join_voice_channel(ctx.message.author.voice.voice_channel)
+        except Exception as err:
+            if err == discord.InvalidArgument:
+                await bot.say('Invalid voice channel given.')
+            elif not discord.opus.is_loaded():
+                await bot.say('Opus library failed to load; you probably need to restart me.')
+            else:
+                await bot.say('Unknown error occurred.\n{}'.format(err))
+
+
+@bot.command(pass_context=True)
+async def leave(ctx):
+    """
+    Disconnects the bot from its current voice channel.
+    """
+    server = ctx.message.server
+    await disconnect_channel(server)
+
+
+# TODO - Support multiple paths at once + queue of songs.
+# TODO - Support local data playback.
+# TODO - Support playing songs found by query.
+# TODO - Show downloading + now playing statements.
+'''
+In particular, src_type is either yt or local.
+If src_type = yt, then uses the path as a URL or a matching substring.
+Else, if src_type = local then searches using the path as either a path or a matching substring.
+File extension supported for playing locally are .mp3, .mp4.
+'''
+@bot.command(pass_context=True)
+async def play(ctx, *, path):
+    """
+    Plays the song given by the URL.
+    """
+    global music_players
+    if not bot.voice_client_in(ctx.message.server):
+        await bot.say('I\'m not in a voice channel to play music, you dingus!')
+        return
+
+    vc = bot.voice_client_in(ctx.message.server)
+    player = await vc.create_ytdl_player(path)
+    music_players[ctx.message.server.id] = player
+    player.start()
+
+    song_duration = '{}:{}'.format(player.duration // 60, str(player.duration % 60).zfill(2)) if player.duration else \
+        '-1'
+    song_title = '{}'.format(player.title) if player.title else player.download_url
+    if song_duration != '-1':
+        song_title += (' ({})'.format(song_duration))
+    await bot.say('Downloading and playing **{}**...'.format(song_title))
+
+
+@bot.command(pass_context=True)
+async def pause(ctx):
+    """
+    Pauses the bot's music.
+    """
+    player = music_players[ctx.message.server.id]
+    player.pause()
+    song_title = player.title if player.title else player.url
+    await bot.say('Pausing **{}**'.format(song_title))
+
+
+@bot.command(pass_context=True)
+async def resume(ctx):
+    """
+    Resumes the bot's music.
+    """
+    player = music_players[ctx.message.server.id]
+    player.resume()
+    song_title = player.title if player.title else player.url
+    await bot.say('Resuming **{}**'.format(song_title))
+
+
+@bot.command(pass_context=True)
+async def stop(ctx):
+    """
+    Stops the bot's music and discards the song played.
+    """
+    player = music_players[ctx.message.server.id]
+    player.stop()
+    song_title = player.title if player.title else player.url
+    await bot.say('Stopping **{}**'.format(song_title))
+
+
+@bot.command(pass_context=True)
+async def volume(ctx, volume):
+    """
+    Sets the bot's music volume.
+    The volume can be a value between 0 (mute, 0%) to 2 (2x volume, 200%).
+    """
+    if not volume:
+        await bot.say('You didn\'t specify a volume, you dingus.')
+        return
+
+    try:
+        if float(volume) < 0 or float(volume) > 2:
+            raise ValueError
+    except ValueError:
+        await bot.say('Volume values can only be between 0 and 2.')
+        return
+
+    player = music_players[ctx.message.server.id]
+    player.volume = float(volume)
+    await bot.say('Music volume set to **{}**.'.format(volume))
 
 
 def get_bot():
