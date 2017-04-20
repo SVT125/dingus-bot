@@ -2,10 +2,12 @@ from discord.ext import commands
 from imgurpython import ImgurClient
 from googleapiclient.discovery import build
 from secrets import *
+from prawcore.exceptions import ResponseException
 import os
 import re
 import random
 import discord
+import praw
 import requests
 import time
 
@@ -18,6 +20,9 @@ magic_ball_answers = []
 bot = commands.Bot(command_prefix="~", description=description)
 imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
 service = build('customsearch', 'v1', developerKey=GOOGLE_KEY)
+reddit_instance = praw.Reddit(client_id=REDDIT_APP_ID,
+                              client_secret=REDDIT_APP_SECRET,
+                              user_agent=REDDIT_APP_USER_AGENT)
 
 
 def is_flag(s):
@@ -407,6 +412,67 @@ async def gfy(*, args=""):
             else:
                 result_gif = result['gfycats'][0]
             await bot.say(result_gif['gifUrl'])
+
+
+# TODO - Allow for long-form command specification for -s flag e.g. -subreddit=4chan+me_irl+...
+# TODO - Support searching for redditors and "hopefully" pulling random comments - annoying since no random indexing.
+# TODO - Can add more flags e.g. sort top by time window, etc.
+@bot.command()
+async def reddit(*, args=""):
+    """
+    Retrieves Reddit posts.
+    Use flag -r to return a random result only if you haven't specified a search term (just a random bag grab).
+    Use flag -s to search under the given subreddits; if this flag is used, the subreddit(s) must be the next argument.
+    You can specify multiple subreddits to search by appending them together with +'s in between.
+    e.g. 4chan+me_irl+greentext...
+
+    The following flags are available for sorting subreddit posts:
+    -g  Gilded
+    -h  Hot
+    -t  Top
+    -n  New
+    -c  Controversial
+    -i  Rising
+
+    If no sorting flag is specified, the query defaults to returning the first submission under the "hot" list.
+    -r takes precedence over any of the sorting flags (-g/h/t/n/c/i).
+    """
+    flags, query = (args.split()[0].lower()[1:], ' '.join(args.split()[1:])) \
+        if len(args.split()) > 1 and is_flag(args.split()[0]) \
+        else ("", args.lower())
+
+    if len(re.findall('[rsghtnci]', flags)) != len(flags):
+        await bot.say('Invalid flags given.')
+        return
+
+    if len(re.findall('[ghtnci]', flags)) > 1:
+        await bot.say('You put too many sorting flags in, you dingus!')
+        return
+
+    subreddits, query = (query.split()[0], ' '.join(query.split()[1:])) if 's' in flags else ('all', query)
+    selected_subreddits = reddit_instance.subreddit(subreddits)
+    SORT_FUNCTIONS = {
+        'g': selected_subreddits.gilded,
+        'h': selected_subreddits.hot,
+        't': selected_subreddits.top,
+        'n': selected_subreddits.new,
+        'c': selected_subreddits.controversial,
+        'i': selected_subreddits.rising
+    }
+    sort_types = ''.join(SORT_FUNCTIONS)
+
+    # Either we're searching with a query or we're returning a submission given the parameters.
+    subreddit_results = selected_subreddits.search(query, limit=25) if query else \
+        SORT_FUNCTIONS.get(re.search('[' + sort_types + ']', flags).group(0),
+                           selected_subreddits.hot)(limit=25)
+
+    try:
+        if not query and 'r' in flags:
+            await bot.say(selected_subreddits.random().shortlink)
+        else:
+            await bot.say(next(subreddit_results).shortlink)
+    except ResponseException:
+        await bot.say('Invalid subreddit query provided!')
 
 
 def get_bot():
