@@ -71,53 +71,6 @@ async def on_ready():
     print('------')
 
 
-@bot.command()
-async def file(*, args=""):
-    """
-    If a path is given as an argument, sends the data file found.
-    Otherwise, if the argument is just a string, returns a random file with the string contained in its name.
-    Use flag '' before the string to return a random file out of what's found.
-    """
-    matched_files = []
-    # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
-    flag, path = (args.split()[0].lower(), args.split()[1].lower()) \
-        if len(args.split()) > 1 and is_flag(args.split()[0]) \
-        else ("", args.lower())
-    is_file_path = lambda p: "." in path or "\\" in path
-    match_str = path
-
-    # If we're looking to match the argument string instead, we want to traverse all subdirs of data\.
-    if path and is_file_path(path):
-        sep = path.rfind('\\')
-        match_str = path[sep+1:]
-        path = path[0:sep]
-    elif path and not is_file_path(path):
-        path = ""
-
-    # A bare security check to ensure we aren't sending files above data\.
-    if '..' in path:
-        await bot.say('Can\'t send a file above data\\\, you dingus!')
-        return
-
-    for root, dirs, files in os.walk('data\\' + path):
-        for file_name in files:
-            if (is_file_path(path) and path == file_name.lower()) or \
-                    (match_str and match_str in file_name.lower()) or \
-                    not match_str:
-                matched_files.append(os.path.join(root, file_name))
-
-    if matched_files:
-        chosen_file = random.choice(matched_files) if flag.lower() == '-r' else matched_files[0]
-        await bot.upload(chosen_file)
-    else:
-        if is_file_path(path):
-            await bot.say("Could not find a file with the given path name.")
-        elif path:
-            await bot.say("Could not find a file whose name contained the given string.")
-        else:
-            await bot.say("There are no matching files in this bot's data folder.")
-
-
 @bot.command(pass_context=True)
 async def join(ctx, channel=""):
     """
