@@ -120,6 +120,11 @@ async def file(*, args=""):
     elif path and not is_file_path(path):
         path = ""
 
+    # A bare security check to ensure we aren't sending files above data\.
+    if '..' in path:
+        await bot.say('Can\'t send a file above data\\\, you dingus!')
+        return
+
     for root, dirs, files in os.walk('data\\' + path):
         for file_name in files:
             if (is_file_path(path) and path == file_name.lower()) or \
@@ -218,7 +223,6 @@ async def data():
     """
     PM's the list of files in the data folder.
     """
-    # TODO - Proper ='s padding
     msg = "Hi! These are the contents of Dingus' data directory.\n"
     msg += ("=" * len(msg)) + '\n'
     for root, dirs, files in os.walk('data\\'):
