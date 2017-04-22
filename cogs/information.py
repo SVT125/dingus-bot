@@ -37,7 +37,7 @@ class Information:
         -a  All time
         """
         # Since file paths/queries have no spaces, len(args) <= 2 and the rest of args is ignored.
-        flags, query = (args.split()[0].lower()[1:], args.split()[1].lower()) \
+        flags, query = (args.split()[0].lower()[1:], args.split()[1:]) \
             if len(args.split()) > 1 and is_flag(args.split()[0]) \
             else ("", args.lower())
         SORT_TYPES = {
@@ -186,7 +186,7 @@ class Information:
         Use flag -r to return a random gif of what's found.
         Use flag -n to get a gif by its name e.g. DelayedArtisticGuppy.
         """
-        flags, query = (args.split()[0].lower(), args.split()[1].lower()) \
+        flags, query = (args.split()[0].lower(), args.split()[1:]) \
             if len(args.split()) > 1 and is_flag(args.split()[0]) \
             else ("", args.lower())
         if 'n' in flags:
@@ -239,7 +239,7 @@ class Information:
         If no sorting flag is specified, the query defaults to returning the first submission under the "hot" list.
         -r takes precedence over any of the sorting flags (-g/h/t/n/c/i).
         """
-        flags, query = (args.split()[0].lower()[1:], ' '.join(args.split()[1:])) \
+        flags, query = (args.split()[0].lower()[1:], args.split()[1:]) \
             if len(args.split()) > 1 and is_flag(args.split()[0]) \
             else ("", args.lower())
 
