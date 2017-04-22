@@ -75,6 +75,11 @@ class Music:
         """
         Plays the song given by the URL.
         """
+        if ctx.message.server.id in self.music_players and self.music_players[ctx.message.server.id].is_playing():
+            await self.bot.say('I\'m currently playing a song right now - I can\'t queue multiple songs because '
+                               'I\'m a dingus.')
+            return
+
         if not self.bot.voice_client_in(ctx.message.server):
             await self.bot.say('I\'m not in a voice channel to play music, you dingus!')
             return
@@ -84,8 +89,8 @@ class Music:
         self.music_players[ctx.message.server.id] = player
         player.start()
 
-        song_duration = '{}:{}'.format(player.duration // 60, str(player.duration % 60).zfill(2)) if player.duration else \
-            '-1'
+        song_duration = '{}:{}'.format(player.duration // 60, str(player.duration % 60).zfill(2)) if player.duration \
+            else '-1'
         song_title = '{}'.format(player.title) if player.title else player.download_url
         if song_duration != '-1':
             song_title += (' ({})'.format(song_duration))
