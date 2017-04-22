@@ -169,7 +169,10 @@ class Information:
             await self.bot.say('No results were found for this query.')
         else:
             selected = random.choice(results) if re.search('r', flags) else results[0]
-            await self.bot.say('**{} ({})**\n{}'.format(selected['title'], selected['link'], selected['snippet']))
+            if is_img_search:
+                await self.bot.say('{}'.format(selected['link']))
+            else:
+                await self.bot.say('**{} ({})**\n{}'.format(selected['title'], selected['link'], selected['snippet']))
 
     @commands.command()
     async def gfy(self, *, args=""):
