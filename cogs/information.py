@@ -145,6 +145,7 @@ class Information:
                 await self.bot.say("There are no matching files in this bot's data folder.")
 
     # TODO - More intrinsic exception reporting e.g. what actually sets off query limit reached?
+    # TODO - Print diff stmt for no results.
     @commands.command()
     async def google(self, *, args=""):
         """
@@ -152,19 +153,23 @@ class Information:
         Use flag -i to do an image search; otherwise, it'll be a text search.
         Use flag -r to return a random result of what's found.
         """
-        flags, query = (args.split()[0].lower(), args.split()[1].lower()) \
+        flags, query = (args.split()[0].lower(), args.split()[1:]) \
             if len(args.split()) > 1 and is_flag(args.split()[0]) \
             else ("", args.lower())
         is_img_search = 'image' if re.search('i', flags) else None
         start = random.randint(1, 10) if re.search('r', flags) else 1
         try:
             results = self.bot.service.cse().list(q=query, cx=GOOGLE_CSE_ID, num=10, filter='1',
-                                         start=start, searchType=is_img_search, safe='off').execute()['items']
+                                         start=start, searchType=is_img_search, safe='off').execute()
+            if 'items' not in results:
+                await self.bot.say('No results found.')
+                return
+            results = results['items']
         except Exception as e:
             await self.bot.say(
                 'Oops! Something went wrong with the Google query - I might\'ve run out of my queries for today.')
-            print(e)
             return
+
         if not results:
             await self.bot.say('No results were found for this query.')
         else:
