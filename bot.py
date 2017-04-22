@@ -10,7 +10,6 @@ import praw
 description = "A bot that provides useless commands and tidbits. " \
               "I can be found at https://github.com/SVT125/dingus-bot.\n" \
               "Note, all flags in commands are shorthand and must be written under 1 argument e.g. -ibu, ib, etc."
-magic_ball_answers = []
 
 bot = commands.Bot(command_prefix="~", description=description)
 
@@ -31,8 +30,9 @@ def startup():
 
     # Reads in the magic 8 ball responses from 'resources\magicball.txt'.
     f = open('resources\magicball.txt', 'r')
+    bot.magic_ball_answers = []
     for line in f:
-        magic_ball_answers.append(line.rstrip())
+        bot.magic_ball_answers.append(line.rstrip())
     print('Loaded magic 8 ball answers from file.')
 
     # Loads the API clients.

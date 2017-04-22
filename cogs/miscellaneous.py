@@ -1,5 +1,6 @@
 from discord.ext import commands
 from cogs.utils.utils import is_flag
+import random
 
 
 class Miscellaneous:
@@ -70,16 +71,16 @@ class Miscellaneous:
     # TODO - Allow users to add their own responses.
     # TODO - If command starts with !, it can't be erased; circumvent people deleting ! insertions as well.
     # TODO - Don't use server's file, but a local file of name "<server ID>-fortune.txt", to stop constant r/w.
-    @commands.command()
+    @commands.command(name='8ball')
     async def magic8(self, question=""):
         """
         Your favorite magic 8 ball!
         Given a question (or any string argument really), returns a random response from a file.
         """
         if not question:
-            await bot.say('You didn\'t ask the magic 8 ball a question!')
+            await self.bot.say('You didn\'t ask the magic 8 ball a question!')
         else:
-            await bot.say(random.choice(magic_ball_answers))
+            await self.bot.say(random.choice(self.bot.magic_ball_answers))
 
 
 def setup(bot):
