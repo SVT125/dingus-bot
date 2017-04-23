@@ -10,11 +10,14 @@ class Miscellaneous:
         self.bot = bot
 
     @commands.command()
-    async def echo(self, *, msg):
+    async def echo(self, *, msg=""):
         """
         Echoes the arguments at the end of the command.
         Useful(?) for improvising a little bot to bot conversation.
         """
+        if not msg:
+            await self.bot.say('Give me something to echo, you dingus!')
+            return
         await self.bot.say(msg)
 
     @commands.command()
