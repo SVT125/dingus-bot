@@ -37,7 +37,8 @@ def startup():
 
     # Loads the API clients.
     bot.imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
-    bot.service = build('customsearch', 'v1', developerKey=GOOGLE_KEY)
+    bot.yt_search_service = build('youtube', 'v3', developerKey=GOOGLE_KEY)
+    bot.search_service = build('customsearch', 'v1', developerKey=GOOGLE_KEY)
     bot.reddit_instance = praw.Reddit(client_id=REDDIT_APP_ID,
                                   client_secret=REDDIT_APP_SECRET,
                                   user_agent=REDDIT_APP_USER_AGENT)

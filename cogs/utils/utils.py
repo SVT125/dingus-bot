@@ -1,11 +1,17 @@
+from secrets import *
 import re
 import requests
-from secrets import *
+import validators
 
 GFYCAT_TOKEN = None
 
+
 def is_flag(s):
     return re.search('-[a-zA-Z][a-zA-Z]*', s)
+
+
+def is_web_url(s):
+    return validators.url(s)
 
 
 # Refreshes/gets the gfycat token using client ID/secret. Returns boolean value indicating if the request succeeded.

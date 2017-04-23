@@ -1,5 +1,7 @@
 from discord.ext import commands
+from cogs.utils.utils import *
 import discord
+import random
 
 OPUS_LIB_NAME = 'libopus-0.x86.dll'
 
@@ -61,31 +63,36 @@ class Music:
         await self.disconnect_channel(server)
 
     # TODO - Support multiple paths at once + queue of songs.
-    # TODO - Support local data playback.
-    # TODO - Support playing songs found by query.
-    # TODO - Show downloading + now playing statements.
-    '''
-    In particular, src_type is either yt or local.
-    If src_type = yt, then uses the path as a URL or a matching substring.
-    Else, if src_type = local then searches using the path as either a path or a matching substring.
-    File extension supported for playing locally are .mp3, .mp4.
-    '''
+    # TODO - Support local data playback w/ flag -l.
+    # TODO - Show downloading + now playing statements asynchronously.
     @commands.command(pass_context=True)
-    async def play(self, ctx, *, path):
+    async def play(self, ctx, *, args):
         """
-        Plays the song given by the URL.
+        Plays the song given by the URL/found by the query.
+        If the arguments are not recognized as a web URL, they are assumed to be a search query.
+        
+        Use flag -r for search queries to return a random result of what's found.
         """
-        if ctx.message.server.id in self.music_players and self.music_players[ctx.message.server.id].is_playing():
-            await self.bot.say('I\'m currently playing a song right now - I can\'t queue multiple songs because '
-                               'I\'m a dingus.')
-            return
-
         if not self.bot.voice_client_in(ctx.message.server):
             await self.bot.say('I\'m not in a voice channel to play music, you dingus!')
             return
 
+        flags, query = (args.split()[0].lower(), args.split()[1:]) \
+            if len(args.split()) > 1 and is_flag(args.split()[0]) \
+            else ("", args)
+
+        if not is_web_url(args):
+            results = self.bot.yt_search_service.search().list(part='snippet', maxResults=25, q=query).execute()
+            if 'items' not in results:
+                await self.bot.say('No Results found.')
+                return
+            result = random.choice(results['items']) if 'r' in flags else results['items'][0]
+            video_url = 'https://www.youtube.com/watch?v={}'.format(result['id']['videoId'])
+        else:
+            video_url = query
+
         vc = self.bot.voice_client_in(ctx.message.server)
-        player = await vc.create_ytdl_player(path)
+        player = await vc.create_ytdl_player(video_url)
         self.music_players[ctx.message.server.id] = player
         player.start()
 

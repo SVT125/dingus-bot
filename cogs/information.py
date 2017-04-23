@@ -159,7 +159,7 @@ class Information:
         is_img_search = 'image' if re.search('i', flags) else None
         start = random.randint(1, 10) if re.search('r', flags) else 1
         try:
-            results = self.bot.service.cse().list(q=query, cx=GOOGLE_CSE_ID, num=10, filter='1',
+            results = self.bot.search_service.cse().list(q=query, cx=GOOGLE_CSE_ID, num=10, filter='1',
                                          start=start, searchType=is_img_search, safe='off').execute()
             if 'items' not in results:
                 await self.bot.say('No results found.')
