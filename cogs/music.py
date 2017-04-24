@@ -66,42 +66,54 @@ class Music:
     # TODO - Support local data playback w/ flag -l.
     # TODO - Show downloading + now playing statements asynchronously.
     @commands.command(pass_context=True)
-    async def play(self, ctx, *, args):
+    async def play(self, ctx, *, args=""):
         """
         Plays the song given by the URL/found by the query.
         If the arguments are not recognized as a web URL, they are assumed to be a search query.
         
         Use flag -r for search queries to return a random result of what's found.
+        Use flag -l to search for a file locally in the bot's data directory.
         """
+        if not args:
+            await self.bot.say('You didn\'t give me anything to play, you dingus!')
+            return
+
         if not self.bot.voice_client_in(ctx.message.server):
             await self.bot.say('I\'m not in a voice channel to play music, you dingus!')
             return
 
-        flags, query = (args.split()[0].lower(), args.split()[1:]) \
+        flags, query = (args.split()[0].lower(), ' '.join(args.split()[1:])) \
             if len(args.split()) > 1 and is_flag(args.split()[0]) \
             else ("", args)
-
-        if not is_web_url(args):
-            results = self.bot.yt_search_service.search().list(part='snippet', maxResults=25, q=query).execute()
-            if 'items' not in results:
-                await self.bot.say('No Results found.')
-                return
-            result = random.choice(results['items']) if 'r' in flags else results['items'][0]
-            video_url = 'https://www.youtube.com/watch?v={}'.format(result['id']['videoId'])
-        else:
-            video_url = query
-
         vc = self.bot.voice_client_in(ctx.message.server)
-        player = await vc.create_ytdl_player(video_url)
-        self.music_players[ctx.message.server.id] = player
-        player.start()
 
-        song_duration = '{}:{}'.format(player.duration // 60, str(player.duration % 60).zfill(2)) if player.duration \
-            else '-1'
-        song_title = '{}'.format(player.title) if player.title else player.download_url
-        if song_duration != '-1':
-            song_title += (' ({})'.format(song_duration))
-        await self.bot.say('Downloading and playing **{}**...'.format(song_title))
+        if 'l' in flags:
+            matched_file_path = find_files(query, return_all=False)
+            player = vc.create_ffmpeg_player(matched_file_path)
+            self.music_players[ctx.message.server.id] = player
+            player.start()
+            await self.bot.say('Now playing local file: **{}**...'.format(matched_file_path))
+        else:
+            if not is_web_url(args):
+                results = self.bot.yt_search_service.search().list(part='snippet', maxResults=25, q=query).execute()
+                if 'items' not in results:
+                    await self.bot.say('No Results found.')
+                    return
+                result = random.choice(results['items']) if 'r' in flags else results['items'][0]
+                video_url = 'https://www.youtube.com/watch?v={}'.format(result['id']['videoId'])
+            else:
+                video_url = query
+
+            player = await vc.create_ytdl_player(video_url)
+            self.music_players[ctx.message.server.id] = player
+            player.start()
+
+            song_duration = '{}:{}'.format(player.duration // 60, str(player.duration % 60).zfill(2)) if player.duration \
+                else '-1'
+            song_title = '{}'.format(player.title) if player.title else player.download_url
+            if song_duration != '-1':
+                song_title += (' ({})'.format(song_duration))
+            await self.bot.say('Downloading and playing **{}**...'.format(song_title))
 
     @commands.command(pass_context=True)
     async def pause(self, ctx):
