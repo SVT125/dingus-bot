@@ -3,7 +3,7 @@
 A Discord bot that provides useless commands and tidbits.
 
 ## Commands
-Note, only shorthand flags (e.g. -r instead of --random) are implemented at this moment in time.
+Note, only shorthand flags (e.g. `-r` instead of `--random`) are implemented at this moment in time.
 
 ### Information
 
@@ -17,7 +17,7 @@ Note, only shorthand flags (e.g. -r instead of --random) are implemented at this
 
 `~imgur`: Search Imgur with a query string. If nothing is given, returns a random result (also available with query strings using flag `-r`). Also available are sorting flags (`-c/v/t`) and if sorting by top submissions, time window flags (`-d/w/m/y/a`).
 
-`~reddit`: Search reddit for submissions. Use flag `-s` to specify a subset of subreddits (e.g. `-s 4chan+me_irl+...`), `-r` to return a random result from all of reddit if no input is specified, or sorting flags (`-g/h/t/n/c/i` -> gold, hot, etc.) to sort the results.
+`~reddit`: Search reddit for submissions. Use flag `-s` to specify a subset of subreddits (e.g. `-s 4chan+me_irl+...`), `-r` to return a random result from all of reddit if no input is specified, or sorting flags (`-g/h/t/n/c/i` to denote gold, hot, etc.) to sort the results.
 
 ### Music
 
