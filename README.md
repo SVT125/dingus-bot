@@ -2,6 +2,23 @@
 
 A Discord bot that provides useless commands and tidbits.
 
+## Requirements
+
+Main Requirements
+* [Python 3.5+](https://www.python.org/downloads/)
+* [Django](https://www.djangoproject.com/)
+* [Discord.py](https://github.com/Rapptz/discord.py)
+
+Command Dependencies
+* [Google API Client Library for Python](https://developers.google.com/api-client-library/python/) (for `~google`, `~play`)
+  * [Google CustomSearch Engine](https://developers.google.com/api-client-library/python/apis/customsearch/v1)
+  * [Youtube Data](https://developers.google.com/api-client-library/python/apis/youtube/v3)
+* [Python Reddit API Wrapper (PRAW)](https://github.com/praw-dev/praw) (for `~praw`)
+* [imgurpython](https://github.com/Imgur/imgurpython) (for `~imgur`)
+* [requests](https://github.com/kennethreitz/requests) (for `~gfy`, also a dependency for a few other APIs here)
+* [validators](https://github.com/kvesteri/validators) (for simplicity of code in verifying strings against formats like web URLs)
+
+
 ## Commands
 Note, only shorthand flags (e.g. `-r` instead of `--random`) are implemented at this moment in time.
 
