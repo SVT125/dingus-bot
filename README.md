@@ -36,6 +36,8 @@ Note, only shorthand flags (e.g. `-r` instead of `--random`) are implemented at 
 
 `~reddit`: Search reddit for submissions. Use flag `-s` to specify a subset of subreddits (e.g. `-s 4chan+me_irl+...`), `-r` to return a random result from all of reddit if no input is specified, or sorting flags (`-g/h/t/n/c/i` to denote gold, hot, etc.) to sort the results.
 
+`~urban`: Search Urban Dictionary for a term. Use flag `-r` to return a random matching definition.
+
 ### Music
 
 `~join`: Joins the voice channel given by the input, or the voice channel that the message sender is in if no input is given.
@@ -59,4 +61,10 @@ Note, only shorthand flags (e.g. `-r` instead of `--random`) are implemented at 
 `~format`: Formats the input; moreso a shorthand versus Discord's native Markdown support, with all supported Discord text formatting also supported by this command (italics, bold, underline, etc).
 
 `~8ball`: Your favorite magic 8 ball! Given a question (or any string argument really), returns random responses read from the bot's local text file.
+
+`~rng`: Get a random number in between 0 and 100, although you can specify positive integer lower and upper bounds.
+
+`~roll`: Roll a six-sided die.
+
+`~flip`: Flip a coin - heads or tails.
 
