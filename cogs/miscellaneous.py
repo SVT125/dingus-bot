@@ -85,6 +85,46 @@ class Miscellaneous:
         else:
             await self.bot.say(random.choice(self.bot.magic_ball_answers))
 
+    @commands.command()
+    async def rng(self, *, args=""):
+        """
+        Get a random number.
+        The default range is [0, 100], but you can specify lower and upper bounds in the input.
+        e.g. ~rng 2 50 gets a random number in [2, 50].
+        """
+        lower = 0
+        upper = 100
+        if args:
+            if len(args.split()) != 2 or not args.replace(' ', '').isdigit():
+                await self.bot.say('You need to give me a numeric positive lower and upper bound if you\'re '
+                                   'giving input, you dingus!')
+                return
+            args = args.split()
+            lower, upper = int(args[0]), int(args[1])
+            if lower > upper:
+                await self.bot.say('The lower bound can\'t be greater than the upper bound, you dingus!')
+                return
+
+        result = random.randint(lower, upper)
+        await self.bot.say('Your random number is **{}.**'.format(result))
+
+    @commands.command()
+    async def roll(self):
+        """
+        Roll the dice.
+        Returns a value between 1 to 6, like your traditional die.
+        """
+        result = random.randint(1, 6)
+        await self.bot.say('You rolled a **{}!**'.format(result))
+
+    @commands.command()
+    async def flip(self):
+        """
+        Flip a coin.
+        """
+        result = 'HEADS' if random.randint(0, 1) else 'TAILS'
+        await self.bot.say('You flipped a coin and got __**{}**__!'.format(result))
+
 
 def setup(bot):
     bot.add_cog(Miscellaneous(bot))
