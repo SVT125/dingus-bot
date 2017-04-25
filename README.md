@@ -15,7 +15,7 @@ Command Dependencies
   * [Youtube Data](https://developers.google.com/api-client-library/python/apis/youtube/v3)
 * [Python Reddit API Wrapper (PRAW)](https://github.com/praw-dev/praw) (for `~praw`)
 * [imgurpython](https://github.com/Imgur/imgurpython) (for `~imgur`)
-* [requests](https://github.com/kennethreitz/requests) (for `~gfy`, also a dependency for a few other APIs here)
+* [requests](https://github.com/kennethreitz/requests) (for `~gfy` and `~urban`, also a dependency for a few other APIs here)
 * [validators](https://github.com/kvesteri/validators) (for simplicity of code in verifying strings against formats like web URLs)
 
 
