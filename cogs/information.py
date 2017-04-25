@@ -265,6 +265,30 @@ class Information:
         except ResponseException:
             await self.bot.say('Invalid subreddit query provided!')
 
+    @commands.command()
+    async def urban(self, *, args=""):
+        """
+        Get a definition from Urban Dictionary.
+        Use flag -r to get a random definition from what's returned.
+        """
+        flags, query = (args.split()[0].lower()[1:], ' '.join(args.split()[1:])) \
+            if len(args.split()) > 1 and is_flag(args.split()[0]) \
+            else ("", args.lower())
+        HEADERS = {
+            'X-Mashape-Key': URBAN_DICT_MASHAPE_KEY,
+            'Accept': 'text/plain'
+        }
+        response = requests.get('https://mashape-community-urban-dictionary.p.mashape.com/define?term={}'
+                                .format(query), headers=HEADERS).json()
+        if not response['list']:
+            await self.bot.say('No results were found.')
+            return
+        result = random.choice(response['list']) if 'r' in flags else response['list'][0]
+        await self.bot.say('**{}** - {}\n\n*{}*\n\n:thumbsup: {}  '
+                           ':thumbsdown:{}\n{}'.format(result['word'], result['definition'],
+                                                       result['example'], result['thumbs_up'],
+                                                       result['thumbs_down'], result['permalink']))
+
 
 def setup(bot):
     bot.add_cog(Information(bot))
