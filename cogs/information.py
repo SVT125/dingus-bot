@@ -284,10 +284,8 @@ class Information:
             await self.bot.say('No results were found.')
             return
         result = random.choice(response['list']) if 'r' in flags else response['list'][0]
-        await self.bot.say('**{}** - {}\n\n*{}*\n\n:thumbsup: {}  '
-                           ':thumbsdown:{}\n{}'.format(result['word'], result['definition'],
-                                                       result['example'], result['thumbs_up'],
-                                                       result['thumbs_down'], result['permalink']))
+        await self.bot.say('**{}** - {}\n\n*{}*\n\n{}'.format(result['word'], result['definition'],
+                                                                result['example'], result['permalink']))
 
 
 def setup(bot):
