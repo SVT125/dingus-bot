@@ -2,6 +2,8 @@
 
 A Discord bot that provides useless commands and tidbits.
 
+Name inspired by Dr. Steve Brule originally of the [*Tim and Eric Awesome Show*](https://www.youtube.com/watch?v=sYMYktsKmSk).
+
 ## Requirements
 
 Main Requirements
