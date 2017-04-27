@@ -63,7 +63,6 @@ class Music:
         await self.disconnect_channel(server)
 
     # TODO - Support multiple paths at once + queue of songs.
-    # TODO - Support local data playback w/ flag -l.
     # TODO - Show downloading + now playing statements asynchronously.
     @commands.command(pass_context=True)
     async def play(self, ctx, *, args=""):
@@ -94,6 +93,11 @@ class Music:
         vc = self.bot.voice_client_in(ctx.message.server)
 
         if 'l' in flags:
+            """
+            TODO - It's possible to play a non-audio file, since we can't view ffmpeg's outputs via discord.py.
+            it might be feasible to whitelist only a list of file extensions + 
+            prevent RTL overrides, view entire file and its extension(s), etc.
+            """
             matched_file_path = find_files(query, return_all=False)
             if not matched_file_path:
                 await self.bot.say('No files found.')
@@ -134,7 +138,7 @@ class Music:
         player = self.music_players[ctx.message.server.id]
         player.pause()
         song_title = player.title if player.title else player.url
-        await self.bot.say('Pausing **{}**'.format(song_title))
+        await self.bot.say('Pausing **{}.**'.format(song_title))
 
     @commands.command(pass_context=True)
     async def resume(self, ctx):
@@ -144,7 +148,7 @@ class Music:
         player = self.music_players[ctx.message.server.id]
         player.resume()
         song_title = player.title if player.title else player.url
-        await self.bot.say('Resuming **{}**'.format(song_title))
+        await self.bot.say('Resuming **{}.**'.format(song_title))
 
     @commands.command(pass_context=True)
     async def stop(self, ctx):
@@ -154,8 +158,9 @@ class Music:
         player = self.music_players[ctx.message.server.id]
         player.stop()
         song_title = player.title if player.title else player.url
-        await self.bot.say('Stopping **{}**'.format(song_title))
+        await self.bot.say('Stopping **{}.**'.format(song_title))
 
+    # TODO - Allow ~volume to show current volume; implement server_id -> curr_volume mapping.
     @commands.command(pass_context=True)
     async def volume(self, ctx, volume):
         """
