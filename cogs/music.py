@@ -74,12 +74,18 @@ class Music:
         Use flag -r for search queries to return a random result of what's found.
         Use flag -l to search for a file locally in the bot's data directory.
         """
+        server_id = ctx.message.server.id
+
         if not args:
             await self.bot.say('You didn\'t give me anything to play, you dingus!')
             return
 
         if not self.bot.voice_client_in(ctx.message.server):
             await self.bot.say('I\'m not in a voice channel to play music, you dingus!')
+            return
+
+        if server_id in self.music_players and self.music_players[server_id].is_playing():
+            await self.bot.say('Sorry, I can\'t queue any songs right now. I\'m a dingus.')
             return
 
         flags, query = (args.split()[0].lower(), ' '.join(args.split()[1:])) \
@@ -89,9 +95,14 @@ class Music:
 
         if 'l' in flags:
             matched_file_path = find_files(query, return_all=False)
+            if not matched_file_path:
+                await self.bot.say('No files found.')
+                return
+
             player = vc.create_ffmpeg_player(matched_file_path)
-            self.music_players[ctx.message.server.id] = player
+            self.music_players[server_id] = player
             player.start()
+
             await self.bot.say('Now playing local file: **{}**...'.format(matched_file_path))
         else:
             if not is_web_url(args):
@@ -105,7 +116,7 @@ class Music:
                 video_url = query
 
             player = await vc.create_ytdl_player(video_url)
-            self.music_players[ctx.message.server.id] = player
+            self.music_players[server_id] = player
             player.start()
 
             song_duration = '{}:{}'.format(player.duration // 60, str(player.duration % 60).zfill(2)) if player.duration \
