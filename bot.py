@@ -10,6 +10,7 @@ import praw
 description = "A bot that provides useless commands and tidbits. " \
               "I can be found at https://github.com/SVT125/dingus-bot.\n" \
               "Note, all flags in commands are shorthand and must be written under 1 argument e.g. -ibu, ib, etc."
+DISCORD_INVITE_LINK = 'https://discordapp.com/oauth2/authorize?client_id=300518336008159232&scope=bot&permissions=1110957121'
 
 bot = commands.Bot(command_prefix="~", description=description)
 
@@ -62,6 +63,14 @@ def startup():
 async def on_ready():
     print('Logged in as {} (ID: {})'.format(bot.user.name, bot.user.id))
     print('------')
+
+
+@bot.command()
+async def invite():
+    """
+    Get an invite link for the bot.
+    """
+    await bot.say('Here\'s the invite link to spread the dingus:\n{}'.format(DISCORD_INVITE_LINK))
 
 
 def get_bot():
