@@ -19,7 +19,7 @@ class Music:
             await matching_voice_clients[0].disconnect()
 
     @commands.command(pass_context=True)
-    async def join(self, ctx, channel=""):
+    async def join(self, ctx, *, channel=""):
         """
         Joins the channel specified.
         If no channel is given, joins the channel of the user who ran the command.
