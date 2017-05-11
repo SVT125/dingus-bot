@@ -18,6 +18,9 @@ class Music:
         if matching_voice_clients:
             await matching_voice_clients[0].disconnect()
 
+    async def display_no_song_error(self):
+        await self.bot.say('I currently don\'t have any songs in queue.')
+
     @commands.command(pass_context=True)
     async def join(self, ctx, *, channel=""):
         """
@@ -135,7 +138,11 @@ class Music:
         """
         Pauses the bot's music.
         """
-        player = self.music_players[ctx.message.server.id]
+        player = self.music_players.get(ctx.message.server.id, None)
+        if not player or player.is_done():
+            await self.display_no_song_error()
+            return
+
         player.pause()
         song_title = player.title if player.title else player.url
         await self.bot.say('Pausing **{}.**'.format(song_title))
@@ -145,7 +152,11 @@ class Music:
         """
         Resumes the bot's music.
         """
-        player = self.music_players[ctx.message.server.id]
+        player = self.music_players.get(ctx.message.server.id, None)
+        if not player or player.is_done():
+            await self.display_no_song_error()
+            return
+
         player.resume()
         song_title = player.title if player.title else player.url
         await self.bot.say('Resuming **{}.**'.format(song_title))
@@ -155,12 +166,16 @@ class Music:
         """
         Stops the bot's music and discards the song played.
         """
-        player = self.music_players[ctx.message.server.id]
+        player = self.music_players.get(ctx.message.server.id, None)
+        if not player or player.is_done():
+            await self.display_no_song_error()
+            return
+
         player.stop()
         song_title = player.title if player.title else player.url
         await self.bot.say('Stopping **{}.**'.format(song_title))
 
-    # TODO - Allow ~volume to show current volume; implement server_id -> curr_volume mapping.
+    # TODO - Allow ~volume to show current volume; implement server_id -> curr_volume mapping to set volume w/o player on.
     @commands.command(pass_context=True)
     async def volume(self, ctx, volume):
         """
