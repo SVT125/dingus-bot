@@ -86,6 +86,19 @@ class Miscellaneous:
             await self.bot.say(random.choice(self.bot.magic_ball_answers))
 
     @commands.command()
+    async def random(self, *, args):
+        """
+        Give me a list of choices to randomly pick from.
+        Pass any number of whitespace-separated arguments to randomly one choose from.
+        """
+        if not args or not args.strip():
+            await self.bot.say('You didn\'t supply any options to randomize on!')
+            return
+        args = args.split()
+        choice = random.choice(args)
+        await self.bot.say('Your randomly selected item is: **{}**.'.format(choice))
+
+    @commands.command()
     async def rng(self, *, args=""):
         """
         Get a random number.
