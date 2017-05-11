@@ -2,6 +2,8 @@
 
 A Discord bot that provides useless commands and tidbits.
 
+Name inspired by Dr. Steve Brule originally of the [*Tim and Eric Awesome Show*](https://www.youtube.com/watch?v=sYMYktsKmSk).
+
 ## Requirements
 
 Main Requirements
@@ -13,7 +15,7 @@ Command Dependencies
 * [Google API Client Library for Python](https://developers.google.com/api-client-library/python/) (for `~google`, `~play`)
   * [Google CustomSearch Engine](https://developers.google.com/api-client-library/python/apis/customsearch/v1)
   * [Youtube Data](https://developers.google.com/api-client-library/python/apis/youtube/v3)
-* [Python Reddit API Wrapper (PRAW)](https://github.com/praw-dev/praw) (for `~praw`)
+* [Python Reddit API Wrapper (PRAW)](https://github.com/praw-dev/praw) (for `~reddit`)
 * [imgurpython](https://github.com/Imgur/imgurpython) (for `~imgur`)
 * [requests](https://github.com/kennethreitz/requests) (for `~gfy` and `~urban`, also a dependency for a few other APIs here)
 * [validators](https://github.com/kvesteri/validators) (for simplicity of code in verifying strings against formats like web URLs)
@@ -21,6 +23,13 @@ Command Dependencies
 
 ## Commands
 Note, only shorthand flags (e.g. `-r` instead of `--random`) are implemented at this moment in time.
+
+### General
+`~help`: View all commands and the help description.
+
+`~invite`: Get the Discord link to invite this bot to other servers!
+
+`~source`: Get the GitHub link to this repository.
 
 ### Information
 
